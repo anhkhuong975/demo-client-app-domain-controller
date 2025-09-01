@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <set>
+#include <filesystem>
 
 // Include our custom headers
 #include "domain_manager.h"
@@ -148,8 +149,19 @@ int main() {
     display_banner();
     
     // Initialize core components
-    // Use absolute path relative to executable location to ensure config is found
-    std::string config_path = "config/billing_client.conf";  // When running from build/ directory
+    // Try different config paths depending on where the executable is run from
+    std::string config_path;
+    if (std::filesystem::exists("config/billing_client.conf")) {
+        config_path = "config/billing_client.conf";  // When running from project root
+    } else if (std::filesystem::exists("../config/billing_client.conf")) {
+        config_path = "../config/billing_client.conf";  // When running from build/ directory
+    } else {
+        std::cout << "Error: Configuration file not found in expected locations" << std::endl;
+        std::cout << "Tried: config/billing_client.conf" << std::endl;
+        std::cout << "Tried: ../config/billing_client.conf" << std::endl;
+        return 1;
+    }
+    
     std::unique_ptr<ConfigManager> config_manager = std::make_unique<ConfigManager>(config_path);
     std::unique_ptr<DomainManager> domain_manager = std::make_unique<DomainManager>(config_manager.get());
     std::unique_ptr<DataCollector> data_collector = std::make_unique<DataCollector>();
