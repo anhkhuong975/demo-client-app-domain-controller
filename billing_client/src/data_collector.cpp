@@ -1,4 +1,5 @@
 #include "data_collector.h"
+#include "data_transmitter.h"
 #include <iostream>
 #include <random>
 #include <fstream>
@@ -34,6 +35,10 @@ bool DataCollector::collect_working_hours(const std::vector<std::string>& user_l
     std::cout << "[DataCollector] Starting data collection for " << user_list.size() 
               << " users in domain: " << target_domain << std::endl;
     
+    // NOTE: In production, this would collect real data from Windows APIs
+    // Currently using mock data generation for demonstration purposes
+    std::cout << "[DataCollector] NOTE: Using mock working hours data (not real Windows API data)" << std::endl;
+    
     // Clear previous data
     clear_data();
     
@@ -50,6 +55,44 @@ bool DataCollector::collect_working_hours(const std::vector<std::string>& user_l
               << collected_data.size() << " records" << std::endl;
     
     return true;
+}
+
+bool DataCollector::transmit_to_domain_controller(const std::string& dc_ip, int port, 
+                                                 const std::string& service_account) {
+    if (collected_data.empty()) {
+        std::cout << "[DataCollector] Error: No data to transmit" << std::endl;
+        return false;
+    }
+    
+    std::cout << "[DataCollector] Preparing to transmit " << collected_data.size() 
+              << " records to domain controller" << std::endl;
+    
+    // Initialize data transmitter
+    DataTransmitter transmitter;
+    if (!transmitter.initialize(dc_ip, port, service_account, false, 30)) {
+        std::cout << "[DataCollector] Error: Failed to initialize data transmitter" << std::endl;
+        return false;
+    }
+    
+    // Test connection first
+    transmitter.test_connection();
+    
+    // Transmit the collected data
+    bool success = transmitter.transmit_working_hours(collected_data, target_domain);
+    
+    if (success) {
+        std::cout << "[DataCollector] Data transmission to domain controller completed successfully" << std::endl;
+        
+        // Show transmission statistics
+        auto stats = transmitter.get_transmission_stats();
+        std::cout << "[DataCollector] Transmission Statistics:" << std::endl;
+        std::cout << "  Success Rate: " << stats["success_rate"] << "%" << std::endl;
+        std::cout << "  Response Time: " << stats["average_response_time_ms"] << "ms" << std::endl;
+    } else {
+        std::cout << "[DataCollector] Data transmission failed" << std::endl;
+    }
+    
+    return success;
 }
 
 std::vector<WorkingHoursData> DataCollector::generate_mock_data(int employee_count) {

@@ -1,192 +1,220 @@
-# Windows Billing Client Demo
+# Windows Billing Client Demo System
 
-A C++ demonstration application that simulates a Windows Domain billing client for collecting working hours data across multiple domains.
+A comprehensive C++ demonstration system that simulates Windows Domain billing infrastructure with multi-domain support for collecting and processing working hours data.
 
-## Overview
+## System Overview
 
-This application demonstrates the architecture and workflow of a Windows billing client that can:
-- Connect to multiple Windows Domains
-- Authenticate with domain controllers
-- Collect working hours data from domain users
-- Generate billing reports
-- Export data for further processing
+This project consists of two main components:
+- **Billing Client**: Collects working hours data from Windows domains
+- **Domain Controller Server**: Receives and processes data from billing clients
 
 ## Architecture
 
-The application is structured with clear separation of concerns:
-
 ```
-src/
-├── include/
-│   ├── domain_manager.h      # Windows Domain authentication and connection
-│   ├── data_collector.h      # Working hours data collection
-│   ├── config_manager.h      # Configuration file management
-│   └── billing_service.h     # Billing report generation
-├── main.cpp                  # Main application with interactive menu
-├── domain_manager.cpp        # Domain authentication implementation
-├── data_collector.cpp        # Data collection with mock data generation
-├── config_manager.cpp        # Configuration parsing and management
-└── billing_service.cpp       # Billing calculations and reporting
+c-plus-learning/
+├── CMakeLists.txt                    # Single build configuration
+├── build/                           # Build output directory
+│   ├── billing_client              # Client executable
+│   ├── domain_controller_server    # Server executable
+│   └── config/                     # Runtime configuration
+├── billing_client/                 # Client source code
+│   ├── src/
+│   │   ├── include/
+│   │   │   ├── domain_manager.h    # Windows Domain authentication
+│   │   │   ├── data_collector.h    # Working hours data collection
+│   │   │   ├── config_manager.h    # Configuration management
+│   │   │   └── data_transmitter.h  # Data transmission to server
+│   │   ├── main.cpp               # Client application entry point
+│   │   ├── domain_manager.cpp     # LDAP authentication implementation
+│   │   ├── data_collector.cpp     # Mock data generation
+│   │   ├── config_manager.cpp     # Configuration file handling
+│   │   └── data_transmitter.cpp   # HTTP client for data transmission
+│   └── config/
+│       └── billing_client.conf   # Client configuration template
+└── domain_controller_server/      # Server source code
+    ├── include/
+    │   └── billing_server.h       # HTTP server interface
+    ├── src/
+    │   ├── main.cpp              # Server application entry point
+    │   └── billing_server.cpp    # HTTP server implementation
+    └── data/                     # Server data storage
 ```
 
 ## Features
 
-### 1. Domain Management
-- **Authentication**: Simulates Windows Domain authentication
-- **Multi-Domain Support**: Configurable for multiple domains
-- **User Enumeration**: Mock domain user discovery
+### Billing Client
+- **Multi-Domain Authentication**: LDAP-based Windows Domain authentication
+- **Data Collection**: Automated working hours data collection with mock data generation
+- **Configuration Management**: File-based configuration for multiple domains
+- **Data Transmission**: HTTP client for sending data to domain controller server
+- **Interactive Menu**: User-friendly command-line interface
 
-### 2. Data Collection
-- **Working Hours**: Collects employee working hours data
-- **Mock Data Generation**: Creates realistic sample data for demo
-- **Department Tracking**: Organizes data by departments and projects
+### Domain Controller Server
+- **HTTP Server**: RESTful API server listening on port 8080
+- **Real-time Dashboard**: Web interface for viewing received data
+- **Data Storage**: In-memory storage with CSV export capability
+- **Client Monitoring**: Track billing client connections and statistics
 
-### 3. Configuration Management
-- **File-Based Config**: Uses configuration files for domain settings
-- **Global Settings**: Application-wide configuration options
-- **Dynamic Loading**: Runtime configuration loading and validation
-
-### 4. Billing Service
-- **Report Generation**: Creates detailed billing reports
-- **Cost Calculation**: Calculates costs based on hourly rates
-- **Export Functionality**: Exports reports to text and CSV formats
-
-## Building the Application
+## Quick Start
 
 ### Prerequisites
 - CMake 3.10 or higher
 - C++17 compatible compiler
-- Windows environment (for full functionality)
+- LDAP libraries (automatically detected on macOS/Linux)
 
-### Build Steps
+### Build System
+The project uses a **single consolidated CMakeLists.txt** for simplified building:
+
 ```bash
-# Create build directory
-mkdir build
-cd build
+# Clone and build
+git clone <repository>
+cd c-plus-learning
 
-# Configure with CMake
+# Single build command for all components
+mkdir -p build && cd build
 cmake ..
+make
 
-# Build the application
-cmake --build .
+# Both executables are now available in build/
+ls -la
+# billing_client
+# domain_controller_server
 ```
 
-## Running the Demo
+### Running the Demo
 
-### 1. Start the Application
+#### 1. Start Domain Controller Server
 ```bash
-./billing_client
+cd build
+./domain_controller_server
+# Choose option 1 to start HTTP server on port 8080
 ```
 
-### 2. Interactive Menu
-The application provides an interactive menu with the following options:
+#### 2. Start Billing Client
+```bash
+cd build
+./billing_client
+# Interactive menu will guide you through the workflow
+```
 
-1. **Load Configuration** - Loads domain and global settings
-2. **Connect to Domain** - Authenticates with a Windows Domain
-3. **Collect Working Hours Data** - Gathers employee working hours
-4. **Generate Billing Report** - Creates billing reports with cost calculations
-5. **Export Data to CSV** - Exports raw data for external processing
-6. **View Configuration** - Displays current configuration settings
-7. **Exit** - Terminates the application
-
-### 3. Demo Workflow
-1. Load configuration (creates default config if none exists)
-2. Connect to domain (use any username/password for demo)
-3. Collect working hours data (generates mock data)
-4. Generate billing report (calculates costs and creates report)
-5. Export data to CSV (saves data for external use)
+#### 3. Demo Workflow
+1. **Load Configuration** - Client loads domain settings from `config/billing_client.conf`
+2. **Connect to Domain** - Authenticate with Windows Domain (demo mode accepts any credentials)
+3. **Collect Working Hours Data** - Generate mock employee working hours data
+4. **Transmit Data to Server** - Send collected data to domain controller server
+5. **View Results** - Check server dashboard at `http://localhost:8080/dashboard`
 
 ## Configuration
 
-The application uses a configuration file at `config/billing_client.conf`:
-
+### Client Configuration (`build/config/billing_client.conf`)
 ```ini
 [global]
-log_level = INFO
 data_collection_interval = 3600
+log_level = INFO
 max_retry_attempts = 3
 output_directory = output
 
-[domain:COMPANY.LOCAL]
-domain_controller = DC01.COMPANY.LOCAL
-service_account = billing_service
+[domain:ds-vm1.local]
+domain_controller = 192.168.1.55
+service_account = ds-vm2
 connection_timeout = 30
-use_ssl = true
+use_ssl = false
 data_sources = WMI, EventLog, Registry
+
+[ldap]
+ldap_server = 192.168.1.55
+ldap_port = 389
+ldap_use_ssl = false
+base_dn = DC=ds-vm1,DC=local
+user_search_filter = (sAMAccountName=%s)
+bind_dn_format = %s@ds-vm1.local
+ldap_timeout = 10
 ```
 
-## VirtualBox Demo Setup
+## API Endpoints
 
-### Windows Server Setup
-1. Install Windows Server 2019/2022
-2. Configure Active Directory Domain Services
-3. Create domain: `COMPANY.LOCAL`
-4. Add test users and computers
+### Domain Controller Server
+- `POST /api/billing/working-hours` - Receive working hours data from clients
+- `GET /dashboard` - Web dashboard for viewing collected data
+- `GET /api/data` - JSON API for accessing all stored data
 
-### Windows 10 Pro Client Setup
-1. Install Windows 10 Pro
-2. Join the domain `COMPANY.LOCAL`
-3. Build and run the billing client application
+## Mock Data Generation
 
-### Network Configuration
-- Ensure both VMs can communicate
-- Configure DNS to point to domain controller
-- Open necessary firewall ports (389, 636, 88, 53)
-
-## Mock Data
-
-The application generates realistic mock data including:
+The system generates realistic demo data including:
 - **Employee IDs**: EMP001, EMP002, etc.
 - **Departments**: IT, Finance, HR, Marketing, Operations
 - **Working Hours**: Random hours between 6-10 per day
 - **Project Codes**: PROJ001-PROJ007
-- **Dates**: Current date for all entries
+- **Timestamps**: Current date for all entries
+
+## VirtualBox Demo Environment
+
+For a complete Windows Domain demo:
+
+### Windows Server Setup
+1. Install Windows Server 2019/2022
+2. Configure Active Directory Domain Services
+3. Create domain: `ds-vm1.local`
+4. Configure DNS and LDAP services
+
+### Windows Client Setup
+1. Install Windows 10 Pro
+2. Join the domain `ds-vm1.local`
+3. Build and run the billing client
+
+### Network Configuration
+- Ensure VM communication on private network
+- Configure DNS to point to domain controller
+- Open firewall ports: 389 (LDAP), 8080 (HTTP server)
+
+## Build System Changes
+
+**Recent Updates:**
+- **Consolidated Build**: Single `CMakeLists.txt` at root level manages all components
+- **Simplified Workflow**: One build command creates both executables in `build/` directory
+- **Clean Structure**: Removed individual CMakeLists.txt files from subdirectories
+- **Unified Output**: All executables and config files centralized in `build/`
 
 ## Output Files
 
-The application generates several output files:
-- `output/billing_report_[domain].txt` - Detailed billing report
-- `output/working_hours_[domain].csv` - Raw data in CSV format
-- `config/billing_client.conf` - Configuration file
+The system generates:
+- `build/config/billing_client.conf` - Runtime configuration
+- `output/billing_report_[domain].txt` - Detailed billing reports
+- `output/working_hours_[domain].csv` - Raw data exports
+- Server dashboard accessible at `http://localhost:8080/dashboard`
 
-## Real-World Implementation Notes
+## Production Considerations
 
-In a production environment, this application would need:
+For real-world deployment:
 
 ### Security Enhancements
 - Secure credential storage (Windows Credential Manager)
 - Certificate-based authentication
 - Encrypted configuration files
-- Audit logging
+- Comprehensive audit logging
 
 ### Windows API Integration
-- **NetAPI32**: For domain user enumeration
-- **ADSI/LDAP**: For Active Directory queries
-- **WMI**: For system information collection
-- **Event Log APIs**: For logon/logoff tracking
+- **NetAPI32**: Domain user enumeration
+- **ADSI/LDAP**: Active Directory queries
+- **WMI**: System information collection
+- **Event Log APIs**: Logon/logoff tracking
 
 ### Performance Optimizations
-- Connection pooling
-- Async data collection
-- Caching mechanisms
-- Batch processing
-
-### Error Handling
-- Network timeout handling
-- Domain controller failover
-- Data validation and sanitization
-- Comprehensive logging
+- Connection pooling for LDAP connections
+- Asynchronous data collection
+- Database storage instead of in-memory
+- Batch processing for large datasets
 
 ## Troubleshooting
 
 ### Common Issues
-1. **Build Errors**: Ensure C++17 compiler and CMake are properly installed
-2. **Configuration Not Found**: Run the application once to generate default config
-3. **Output Directory**: Ensure write permissions to output directory
+1. **Build Errors**: Ensure CMake 3.10+ and C++17 compiler
+2. **LDAP Libraries**: Install `openldap-dev` or `libldap-dev` on Linux
+3. **Config Not Found**: Copy `billing_client/config/billing_client.conf` to `build/config/`
+4. **Server Connection**: Ensure server is running before client data transmission
 
 ### Debug Mode
-Enable debug logging by setting `log_level = DEBUG` in configuration file.
+Set `log_level = DEBUG` in configuration file for detailed logging.
 
 ## License
-
-This is a demonstration application for educational purposes.
+None

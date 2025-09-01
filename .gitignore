@@ -9,5 +9,9 @@ package-lock.json
 originals
 dist
 certbot
-build
-output
+
+billing_client/build
+billing_client/output
+
+domain_controller_server/build
+domain_controller_server/output

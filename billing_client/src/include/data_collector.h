@@ -83,6 +83,16 @@ public:
      * @return true if export successful, false otherwise
      */
     bool export_to_csv(const std::string& filename) const;
+    
+    /**
+     * @brief Transmit collected data to domain controller
+     * @param dc_ip Domain controller IP address
+     * @param port Server port (default 8080)
+     * @param service_account Service account name
+     * @return true if transmission successful, false otherwise
+     */
+    bool transmit_to_domain_controller(const std::string& dc_ip, int port = 8080, 
+                                      const std::string& service_account = "");
 };
 
 #endif // DATA_COLLECTOR_H

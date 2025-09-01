@@ -43,7 +43,7 @@ void display_config_summary(const ConfigManager& config_manager) {
     std::cout << "Log Level: " << config_manager.get_global_setting("log_level", "INFO") << std::endl;
     std::cout << "Output Directory: " << config_manager.get_global_setting("output_directory", "output") << std::endl;
     
-    std::cout << "\n💡 Configuration file location: ../config/billing_client.conf" << std::endl;
+    std::cout << "\n💡 Configuration file location: config/billing_client.conf" << std::endl;
     std::cout << "   Edit this file to modify domains, settings, and authentication parameters." << std::endl;
     std::cout << "========================================" << std::endl;
 }
@@ -64,8 +64,9 @@ void display_menu(const std::string& current_domain, bool domain_connected) {
     std::cout << "1. View Domain Controller Configuration and Status" << std::endl;
     std::cout << "2. Connect to Domain" << std::endl;
     std::cout << "3. Collect Working Hours Data" << std::endl;
-    std::cout << "4. Exit" << std::endl;
-    std::cout << "Enter your choice (1-4): ";
+    std::cout << "4. Transmit Data to Domain Controller" << std::endl;
+    std::cout << "5. Exit" << std::endl;
+    std::cout << "Enter your choice (1-5): ";
 }
 
 /**
@@ -148,7 +149,7 @@ int main() {
     
     // Initialize core components
     // Use absolute path relative to executable location to ensure config is found
-    std::string config_path = "../config/billing_client.conf";  // When running from build/ directory
+    std::string config_path = "config/billing_client.conf";  // When running from build/ directory
     std::unique_ptr<ConfigManager> config_manager = std::make_unique<ConfigManager>(config_path);
     std::unique_ptr<DomainManager> domain_manager = std::make_unique<DomainManager>(config_manager.get());
     std::unique_ptr<DataCollector> data_collector = std::make_unique<DataCollector>();
@@ -172,7 +173,7 @@ int main() {
     
     // Main application loop
     int choice = 0;
-    while (choice != 4) {
+    while (choice != 5) {
         display_menu(current_domain, domain_connected);
         std::cin >> choice;
         
@@ -267,13 +268,47 @@ int main() {
             }
             
             case 4: {
+                // Transmit Data to Domain Controller
+                if (!domain_connected) {
+                    std::cout << "\nError: Please connect to a domain first." << std::endl;
+                    break;
+                }
+                
+                if (!data_collected) {
+                    std::cout << "\nError: No data to transmit. Please collect working hours data first." << std::endl;
+                    break;
+                }
+                
+                std::cout << "\nTransmitting working hours data to domain controller..." << std::endl;
+                
+                // Get domain controller configuration
+                auto domain_config = config_manager->get_domain_config(current_domain);
+                
+                // Transmit data to domain controller
+                bool transmission_success = data_collector->transmit_to_domain_controller(
+                    domain_config.domain_controller, 
+                    8080,  // Default port for billing service
+                    domain_config.service_account
+                );
+                
+                if (transmission_success) {
+                    std::cout << "\n✅ Data transmission completed successfully!" << std::endl;
+                    std::cout << "Working hours data has been sent to domain controller: " 
+                              << domain_config.domain_controller << std::endl;
+                } else {
+                    std::cout << "\n❌ Data transmission failed!" << std::endl;
+                }
+                break;
+            }
+            
+            case 5: {
                 // Exit
                 std::cout << "\nShutting down billing client..." << std::endl;
                 break;
             }
             
             default: {
-                std::cout << "\nInvalid choice. Please select 1-4." << std::endl;
+                std::cout << "\nInvalid choice. Please select 1-5." << std::endl;
                 break;
             }
         }
