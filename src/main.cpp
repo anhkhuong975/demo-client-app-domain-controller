@@ -50,9 +50,17 @@ void display_config_summary(const ConfigManager& config_manager) {
 
 /**
  * @brief Display menu options to user
+ * @param current_domain Current connected domain name
+ * @param domain_connected Connection status
  */
-void display_menu() {
+void display_menu(const std::string& current_domain, bool domain_connected) {
     std::cout << "\n--- Main Menu ---" << std::endl;
+    std::cout << "Domain connection status: ";
+    if (domain_connected) {
+        std::cout << "CONNECTED to " << current_domain << std::endl;
+    } else {
+        std::cout << "DISCONNECTED" << std::endl;
+    }
     std::cout << "1. View Domain Controller Configuration and Status" << std::endl;
     std::cout << "2. Connect to Domain" << std::endl;
     std::cout << "3. Collect Working Hours Data" << std::endl;
@@ -165,7 +173,7 @@ int main() {
     // Main application loop
     int choice = 0;
     while (choice != 4) {
-        display_menu();
+        display_menu(current_domain, domain_connected);
         std::cin >> choice;
         
         switch (choice) {
