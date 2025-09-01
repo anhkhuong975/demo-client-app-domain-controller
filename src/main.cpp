@@ -38,11 +38,12 @@ void display_config_summary(const ConfigManager& config_manager) {
     }
     
     // Show key global settings
-    std::cout << "LDAP Server: " << config_manager.get_global_setting("ldap_server", "Not configured") << std::endl;
+    auto ldap_config = config_manager.get_ldap_config();
+    std::cout << "LDAP Server: " << (ldap_config.ldap_server.empty() ? "Not configured" : ldap_config.ldap_server) << std::endl;
     std::cout << "Log Level: " << config_manager.get_global_setting("log_level", "INFO") << std::endl;
     std::cout << "Output Directory: " << config_manager.get_global_setting("output_directory", "output") << std::endl;
     
-    std::cout << "\n💡 Configuration file location: config/billing_client.conf" << std::endl;
+    std::cout << "\n💡 Configuration file location: ../config/billing_client.conf" << std::endl;
     std::cout << "   Edit this file to modify domains, settings, and authentication parameters." << std::endl;
     std::cout << "========================================" << std::endl;
 }
@@ -99,12 +100,13 @@ void display_domain_controller_status(const ConfigManager& config_manager,
     }
     
     // Display LDAP configuration
+    auto ldap_config = config_manager.get_ldap_config();
     std::cout << "\nLDAP Authentication Settings:" << std::endl;
-    std::cout << "  LDAP Server: " << config_manager.get_global_setting("ldap_server", "Not configured") << std::endl;
-    std::cout << "  LDAP Port: " << config_manager.get_global_setting("ldap_port", "389") << std::endl;
-    std::cout << "  SSL/TLS: " << (config_manager.get_global_setting("ldap_use_ssl", "false") == "true" ? "Enabled" : "Disabled") << std::endl;
-    std::cout << "  Base DN: " << config_manager.get_global_setting("base_dn", "Not configured") << std::endl;
-    std::cout << "  Timeout: " << config_manager.get_global_setting("ldap_timeout", "10") << "s" << std::endl;
+    std::cout << "  LDAP Server: " << (ldap_config.ldap_server.empty() ? "Not configured" : ldap_config.ldap_server) << std::endl;
+    std::cout << "  LDAP Port: " << ldap_config.ldap_port << std::endl;
+    std::cout << "  SSL/TLS: " << (ldap_config.ldap_use_ssl ? "Enabled" : "Disabled") << std::endl;
+    std::cout << "  Base DN: " << (ldap_config.base_dn.empty() ? "Not configured" : ldap_config.base_dn) << std::endl;
+    std::cout << "  Timeout: " << ldap_config.ldap_timeout << "s" << std::endl;
     
     // Display global settings
     std::cout << "\nGlobal Settings:" << std::endl;
@@ -137,7 +139,9 @@ int main() {
     display_banner();
     
     // Initialize core components
-    std::unique_ptr<ConfigManager> config_manager = std::make_unique<ConfigManager>("config/billing_client.conf");
+    // Use absolute path relative to executable location to ensure config is found
+    std::string config_path = "../config/billing_client.conf";  // When running from build/ directory
+    std::unique_ptr<ConfigManager> config_manager = std::make_unique<ConfigManager>(config_path);
     std::unique_ptr<DomainManager> domain_manager = std::make_unique<DomainManager>(config_manager.get());
     std::unique_ptr<DataCollector> data_collector = std::make_unique<DataCollector>();
     

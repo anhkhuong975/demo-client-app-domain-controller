@@ -18,9 +18,9 @@ bool ConfigManager::load_config() {
     
     // Check if config file exists
     if (!std::filesystem::exists(config_file_path)) {
-        std::cout << "[ConfigManager] Config file not found, creating default configuration" << std::endl;
-        create_default_config();
-        return save_config();
+        std::cout << "[ConfigManager] Config file not found at: " << config_file_path << std::endl;
+        std::cout << "[ConfigManager] Please ensure the configuration file exists in the correct location" << std::endl;
+        return false;
     }
     
     // Parse existing config file
