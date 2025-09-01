@@ -21,6 +21,33 @@ void display_banner() {
 }
 
 /**
+ * @brief Display configuration summary on startup
+ * @param config_manager Reference to ConfigManager instance
+ */
+void display_config_summary(const ConfigManager& config_manager) {
+    std::cout << "\n=== Configuration Summary ===" << std::endl;
+    
+    // Show configured domains count
+    auto domains = config_manager.get_configured_domains();
+    std::cout << "Configured Domains: " << domains.size() << std::endl;
+    
+    for (const auto& domain_name : domains) {
+        auto domain_config = config_manager.get_domain_config(domain_name);
+        std::cout << "  - " << domain_config.domain_name 
+                  << " (" << domain_config.domain_controller << ")" << std::endl;
+    }
+    
+    // Show key global settings
+    std::cout << "LDAP Server: " << config_manager.get_global_setting("ldap_server", "Not configured") << std::endl;
+    std::cout << "Log Level: " << config_manager.get_global_setting("log_level", "INFO") << std::endl;
+    std::cout << "Output Directory: " << config_manager.get_global_setting("output_directory", "output") << std::endl;
+    
+    std::cout << "\n💡 Configuration file location: config/billing_client.conf" << std::endl;
+    std::cout << "   Edit this file to modify domains, settings, and authentication parameters." << std::endl;
+    std::cout << "========================================" << std::endl;
+}
+
+/**
  * @brief Display menu options to user
  */
 void display_menu() {
@@ -121,6 +148,9 @@ int main() {
         return 1;
     }
     std::cout << "Configuration loaded successfully!" << std::endl;
+    
+    // Display configuration summary
+    display_config_summary(*config_manager);
     
     // Application state variables
     bool domain_connected = false;
