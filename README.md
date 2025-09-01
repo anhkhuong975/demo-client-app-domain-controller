@@ -13,24 +13,23 @@ This project consists of two main components:
 ```
 c-plus-learning/
 ├── CMakeLists.txt                    # Single build configuration
+├── config/                          # Configuration files (shared)
+│   └── billing_client.conf         # Client configuration
 ├── build/                           # Build output directory
 │   ├── billing_client              # Client executable
-│   ├── domain_controller_server    # Server executable
-│   └── config/                     # Runtime configuration
+│   └── domain_controller_server    # Server executable
 ├── billing_client/                 # Client source code
-│   ├── src/
-│   │   ├── include/
-│   │   │   ├── domain_manager.h    # Windows Domain authentication
-│   │   │   ├── data_collector.h    # Working hours data collection
-│   │   │   ├── config_manager.h    # Configuration management
-│   │   │   └── data_transmitter.h  # Data transmission to server
-│   │   ├── main.cpp               # Client application entry point
-│   │   ├── domain_manager.cpp     # LDAP authentication implementation
-│   │   ├── data_collector.cpp     # Mock data generation
-│   │   ├── config_manager.cpp     # Configuration file handling
-│   │   └── data_transmitter.cpp   # HTTP client for data transmission
-│   └── config/
-│       └── billing_client.conf   # Client configuration template
+│   └── src/
+│       ├── include/
+│       │   ├── domain_manager.h    # Windows Domain authentication
+│       │   ├── data_collector.h    # Working hours data collection
+│       │   ├── config_manager.h    # Configuration management
+│       │   └── data_transmitter.h  # Data transmission to server
+│       ├── main.cpp               # Client application entry point
+│       ├── domain_manager.cpp     # LDAP authentication implementation
+│       ├── data_collector.cpp     # Mock data generation
+│       ├── config_manager.cpp     # Configuration file handling
+│       └── data_transmitter.cpp   # HTTP client for data transmission
 └── domain_controller_server/      # Server source code
     ├── include/
     │   └── billing_server.h       # HTTP server interface
@@ -92,13 +91,18 @@ cd build
 
 #### 2. Start Billing Client
 ```bash
+# Option 1: Run from project root
+./build/billing_client
+
+# Option 2: Run from build directory
 cd build
 ./billing_client
+
 # Interactive menu will guide you through the workflow
 ```
 
 #### 3. Demo Workflow
-1. **Load Configuration** - Client loads domain settings from `config/billing_client.conf`
+1. **Load Configuration** - Client automatically loads domain settings from `config/billing_client.conf`
 2. **Connect to Domain** - Authenticate with Windows Domain (demo mode accepts any credentials)
 3. **Collect Working Hours Data** - Generate mock employee working hours data
 4. **Transmit Data to Server** - Send collected data to domain controller server
@@ -106,7 +110,7 @@ cd build
 
 ## Configuration
 
-### Client Configuration (`build/config/billing_client.conf`)
+### Client Configuration (`config/billing_client.conf`)
 ```ini
 [global]
 data_collection_interval = 3600
@@ -173,12 +177,13 @@ For a complete Windows Domain demo:
 - **Consolidated Build**: Single `CMakeLists.txt` at root level manages all components
 - **Simplified Workflow**: One build command creates both executables in `build/` directory
 - **Clean Structure**: Removed individual CMakeLists.txt files from subdirectories
-- **Unified Output**: All executables and config files centralized in `build/`
+- **Shared Configuration**: Configuration files moved to project root level (`config/`) for better organization
+- **Flexible Execution**: Applications can run from both project root and build directory
 
 ## Output Files
 
 The system generates:
-- `build/config/billing_client.conf` - Runtime configuration
+- `config/billing_client.conf` - Configuration file (shared across project)
 - `output/billing_report_[domain].txt` - Detailed billing reports
 - `output/working_hours_[domain].csv` - Raw data exports
 - Server dashboard accessible at `http://localhost:8080/dashboard`
@@ -210,8 +215,9 @@ For real-world deployment:
 ### Common Issues
 1. **Build Errors**: Ensure CMake 3.10+ and C++17 compiler
 2. **LDAP Libraries**: Install `openldap-dev` or `libldap-dev` on Linux
-3. **Config Not Found**: Copy `billing_client/config/billing_client.conf` to `build/config/`
+3. **Config Not Found**: Ensure `config/billing_client.conf` exists in project root
 4. **Server Connection**: Ensure server is running before client data transmission
+5. **Path Issues**: Application automatically detects config file location when run from project root or build directory
 
 ### Debug Mode
 Set `log_level = DEBUG` in configuration file for detailed logging.
